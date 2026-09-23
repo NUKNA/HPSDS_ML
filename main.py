@@ -37,21 +37,21 @@ def denormalization(data:np.ndarray, data_min, data_max):
     return data
 
 # 加载数据
-# x_train_8m, y_train_8m = loadfile.loadfile(r"D:\科研文件\xianhushuju\20260611\8m",
-#                                            '20260611_[1]REF[2]DAS_MPC8m_NH3_1512nm_CtrlT17.9667_EOM10V_RF999MHz5MHz_Scan100Hz0mA100mA_Sample200kHz1k_avg100_',
-#                                            [0.5, 1, 3, 5, 8, 10, 20, 30, 40, 50, 60, 80, 100, 200, 300, 400, 500, 600, 800, 1000, 2000, 3000,4000, 5000, 6000, 8000, 10000])
-# x_train_9cm, y_train_9cm = loadfile.loadfile(r"D:\科研文件\xianhushuju\20260611\9cm",
-#                                              '20260611_[1]REF[2]DAS_MPC9cm_NH3_1512nm_CtrlT17.9667_EOM10V_RF999MHz5MHz_Scan100Hz0mA100mA_Sample200kHz1k_avg100_',
-#                                              [250,500,1500,2500,4000,5000,10000,15000,20000,25000,30000,40000,50000])
-# x_train = np.hstack((x_train_8m, x_train_9cm))
-# y_train = np.hstack((y_train_8m, y_train_9cm))
-x_train, y_train = loadfile.loadfile(r"D:\科研文件\xianhushuju\20260610.2_8m",
-                                   '20260610_[1]REF[2]DAS_MPC8m_NH3_1512nm_CtrlT17.9667_EOM10V_RF999MHz5MHz_Scan100Hz0mA100mA_Sample200kHz1k_avg100_',
-                                   [0,0.5,1,2,3,4,5,6,7,8,9,10,20,30,40,50,60,70,80,90,100,200,300,400,500,600,700,800,900,1000,2000,3000,4000,5000,6000,7000,8000,9000,10000])
+x_1, y_1 = loadfile.loadfile(r'D:\科研文件\xianhushuju\20260921',
+                             '20260921_REF_MPC8m_NH3_1512nm_CtrlT17.9667_EOM10V_RF999MHz5MHz_Scan100Hz0mA100mA_Sample200kHz1k_avg100_',
+                             [60,70,100], 35)
+x_2, y_2 = loadfile.loadfile(r'D:\科研文件\xianhushuju\20260922',
+                             '20260922_REF_MPC8m_NH3_1512nm_CtrlT17.9667_EOM10V_RF999MHz5MHz_Scan100Hz0mA100mA_Sample200kHz1k_avg50_',
+                             [3,4,5,6,7,8,9,10,20,30,40,50,60,70,100,500,600,700,800,900,1000,2000,3000,4000], 35)
+x_3, y_3 = loadfile.loadfile(r'D:\科研文件\xianhushuju\20260922',
+                             '20260922_REF_MPC8m_NH3_1512nm_CtrlT17.9667_EOM10V_RF999MHz5MHz_Scan100Hz0mA100mA_Sample200kHz1k_avg100_',
+                             [300,400], 35)
+x_train = np.hstack((x_1, x_2, x_3))
+y_train = np.hstack((y_1, y_2, y_3))
 
-x_test, y_test = loadfile.loadfile(r"D:\科研文件\xianhushuju\20260611\8m",
-                                           '20260611_[1]REF[2]DAS_MPC8m_NH3_1512nm_CtrlT17.9667_EOM10V_RF999MHz5MHz_Scan100Hz0mA100mA_Sample200kHz1k_avg100_',
-                                           [0.5, 1, 3, 5, 8, 10, 20, 30, 40, 50, 60, 80, 100, 200, 300, 400, 500, 600, 800, 1000, 2000, 3000,4000, 5000, 6000, 8000, 10000])
+x_test, y_test = loadfile.load_the_runtime(r'D:\科研文件\xianhushuju\20260922',
+                             '20260922_REF_MPC8m_NH3_1512nm_CtrlT17.9667_EOM10V_RF999MHz5MHz_Scan100Hz0mA100mA_Sample200kHz1k_avg50_',
+                             [3,4,5,6,7,8,9,10,20,30,40,50,60,70,100,500,600,700,800,900,1000,2000,3000,4000], 36)
 
 # 数据预处理
 # 转置数据

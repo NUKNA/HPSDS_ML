@@ -1,6 +1,9 @@
 import numpy as np
 import os
 
+name_mid = 'ppm_run'
+name_suf = '.txt'
+
 def loadfile(data_path, name_pre, x_sequence, runtime=3):
     """
     :param data_path: 数据文件路径
@@ -17,12 +20,10 @@ def loadfile(data_path, name_pre, x_sequence, runtime=3):
     3)
     """
     os.chdir(data_path)
-    name_mid = 'ppm_run'
-    name_suf = '.txt'
     data = np.loadtxt(name_pre + str(x_sequence[0]) + name_mid + str(1) + name_suf)
     label = np.empty([1,1], 'float64')
     label[0][0] = x_sequence[0]
-    if data.shape != 1:
+    if data.ndim != 1:
         data = np.delete(data, 1, 1)
         for i in range(2,runtime+1):
             label = np.append(label, [x_sequence[0]])
@@ -36,13 +37,39 @@ def loadfile(data_path, name_pre, x_sequence, runtime=3):
                 temp = np.delete(temp, 1, 1)
                 data = np.hstack((data, temp))
     else:
+        data = data.reshape(-1,1)
         for i in range(2,runtime):
+            label = np.append(label, [x_sequence[0]])
             temp = np.loadtxt(name_pre + str(x_sequence[0]) + name_mid + str(i) + name_suf)
+            temp = temp.reshape(-1,1)
             data = np.hstack((data, temp))
         for k in range(1,len(x_sequence)):
             for i in range(1,runtime):
+                label = np.append(label, [x_sequence[k]])
                 temp = np.loadtxt(name_pre + str(x_sequence[k]) + name_mid + str(i) + name_suf)
+                temp = temp.reshape(-1, 1)
                 data = np.hstack((data, temp))
+    return data, label
+
+def load_the_runtime(data_path, name_pre, x_sequence, run_number):
+    os.chdir(data_path)
+    data = np.loadtxt(name_pre + str(x_sequence[0]) + name_mid + str(run_number) + name_suf)
+    label = np.empty([1,1], 'float64')
+    label[0][0] = x_sequence[0]
+    if data.ndim != 1:
+        data = np.delete(data, 1, 1)
+        for k in range(1,len(x_sequence)):
+            label = np.append(label, [x_sequence[k]])
+            temp = np.loadtxt(name_pre + str(x_sequence[k]) + name_mid + str(run_number) + name_suf)
+            temp = np.delete(temp, 1, 1)
+            data = np.hstack((data, temp))
+    else:
+        data = data.reshape(-1,1)
+        for k in range(1,len(x_sequence)):
+            label = np.append(label, [x_sequence[k]])
+            temp = np.loadtxt(name_pre + str(x_sequence[k]) + name_mid + str(run_number) + name_suf)
+            temp = temp.reshape(-1, 1)
+            data = np.hstack((data, temp))
     return data, label
 
 if __name__=='__main__':
