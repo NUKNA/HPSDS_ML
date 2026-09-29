@@ -1,11 +1,9 @@
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, Dropout, Flatten
-from tensorflow.keras.layers import Conv1D, MaxPooling1D
 from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
 import matplotlib.pyplot as plt
 import matplotlib as mpl
-import loadfile
 import numpy as np
+import loadfile
+import model_config
 
 def normalization(data:np.ndarray, minmax=False):
     """
@@ -58,8 +56,8 @@ x_test, y_test = loadfile.load_the_runtime(r'D:\科研文件\xianhushuju\2026092
 x_train = x_train.transpose()
 x_test = x_test.transpose()
 # 删除吸收列
-x_train = np.delete(x_train, range(0,200), axis=1)
-x_test = np.delete(x_test, range(0,200), axis=1)
+x_train = np.delete(x_train, range(0,300), axis=1)
+x_test = np.delete(x_test, range(0,300), axis=1)
 # 归一化处理
 x_train = normalization(x_train)
 x_test = normalization(x_test)
@@ -67,17 +65,7 @@ y_train, y_train_min, y_train_max = normalization(y_train, True)
 y_test, y_test_min, y_test_max = normalization(y_test, True)
 
 # 构建模型
-model = Sequential([
-    Conv1D(32, kernel_size=16, strides=2, activation='relu', padding='same', input_shape=(800, 1)),
-    Conv1D(64, 8, strides=1, activation='relu', padding='same'),
-    MaxPooling1D(pool_size=2),
-    Dropout(0.25),
-    Flatten(),
-    Dense(128, activation='relu'),
-    Dropout(0.5),
-    Dense(1, activation='linear')
-])
-model.summary()
+model = model_config.build_model()
 
 # 编译模型
 model.compile(loss='mse',
