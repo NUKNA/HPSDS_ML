@@ -36,22 +36,9 @@ def denormalization(data:np.ndarray, data_min, data_max):
         data[i] = (data_max - data_min) * data[i] + data_min
     return data
 
-# 加载数据
-x_1, y_1 = loadfile.loadfile(r'D:\科研文件\xianhushuju\20260921',
-                             '20260921_REF_MPC8m_NH3_1512nm_CtrlT17.9667_EOM10V_RF999MHz5MHz_Scan100Hz0mA100mA_Sample200kHz1k_avg100_',
-                             [60,70,100], 35)
-x_2, y_2 = loadfile.loadfile(r'D:\科研文件\xianhushuju\20260922',
-                             '20260922_REF_MPC8m_NH3_1512nm_CtrlT17.9667_EOM10V_RF999MHz5MHz_Scan100Hz0mA100mA_Sample200kHz1k_avg50_',
-                             [3,4,5,6,7,8,9,10,20,30,40,50,60,70,100,500,600,700,800,900,1000,2000,3000,4000], 35)
-x_3, y_3 = loadfile.loadfile(r'D:\科研文件\xianhushuju\20260922',
-                             '20260922_REF_MPC8m_NH3_1512nm_CtrlT17.9667_EOM10V_RF999MHz5MHz_Scan100Hz0mA100mA_Sample200kHz1k_avg100_',
-                             [300,400], 35)
-x_train = np.hstack((x_1, x_2, x_3))
-y_train = np.hstack((y_1, y_2, y_3))
+x_train, y_train = loadfile.loadfile_accord_txt(r'D:\科研文件\xianhushuju', 'train.txt')
+x_test, y_test = loadfile.loadfile_accord_txt(r'D:\科研文件\xianhushuju', 'test.txt')
 
-x_test, y_test = loadfile.load_the_runtime(r'D:\科研文件\xianhushuju\20260922',
-                             '20260922_REF_MPC8m_NH3_1512nm_CtrlT17.9667_EOM10V_RF999MHz5MHz_Scan100Hz0mA100mA_Sample200kHz1k_avg50_',
-                             [3,4,5,6,7,8,9,10,20,30,40,50,60,70,100,500,600,700,800,900,1000,2000,3000,4000], 36)
 
 # 数据预处理
 # 转置数据
