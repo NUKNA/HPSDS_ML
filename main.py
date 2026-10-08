@@ -1,11 +1,13 @@
+from tensorflow.keras import models
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Dropout, Flatten
 from tensorflow.keras.layers import Conv1D, MaxPooling1D
 from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
 import matplotlib.pyplot as plt
 import matplotlib as mpl
-import loadfile
 import numpy as np
+import loadfile
+import sub_model as sm
 
 def normalization(data:np.ndarray, minmax=False):
     """
@@ -55,14 +57,14 @@ y_test, y_test_min, y_test_max = normalization(y_test, True)
 
 # 构建模型
 model = Sequential([
-    Conv1D(32, kernel_size=16, strides=2, activation='relu', padding='same', input_shape=(800, 1)),
-    Conv1D(64, 8, strides=1, activation='relu', padding='same'),
-    MaxPooling1D(pool_size=2),
-    Dropout(0.25),
-    Flatten(),
-    Dense(128, activation='relu'),
-    Dropout(0.5),
-    Dense(1, activation='linear')
+    Conv1D(32, kernel_size=16, strides=2, activation='relu', padding='same', input_shape=(800, 1), name='conv1'),
+    Conv1D(64, 8, strides=1, activation='relu', padding='same', name='conv2'),
+    MaxPooling1D(pool_size=2, name='maxpool'),
+    Dropout(0.25, name='dropout1'),
+    Flatten(name='flatten'),
+    Dense(128, activation='relu', name='dense1'),
+    Dropout(0.5, name='dropout2'),
+    Dense(1, activation='linear', name='output')
 ])
 model.summary()
 
@@ -84,6 +86,18 @@ y_predict = y_predict.flatten()
 
 y_test = denormalization(y_test, y_test_min, y_test_max)
 y_predict = denormalization(y_predict, y_test_min, y_test_max)
+
+# 获取中间层的输出
+layer_names = ['conv1', 'conv2', 'maxpool', 'dropout1', 'flatten', 'dropout2', 'dense1']
+extractor = models.Model(
+    inputs=model.inputs,
+    outputs=[model.get_layer(n).output for n in layer_names]
+)
+feats = extractor.predict(x_test, verbose=0)
+for name, f in zip(layer_names, feats):
+    sm.plot_feature_maps(f, title=f'Feature maps of {name} (shape={f.shape})')
+    sm.plot_heatmap(f, title=f'{name} activations')
+    sm.plot_activation_overlay(f, title=f'{name}(per-channel normalized)')
 
 # 计算指标
 r2 = r2_score(y_test, y_predict)
