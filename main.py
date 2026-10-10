@@ -1,13 +1,10 @@
-from tensorflow.keras import models
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, Dropout, Flatten
-from tensorflow.keras.layers import Conv1D, MaxPooling1D
 from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 import numpy as np
-import loadfile
 import sub_model as sm
+import loadfile
+import model_config
 
 def normalization(data:np.ndarray, minmax:bool=False):
     """
@@ -56,17 +53,7 @@ y_train, y_train_min, y_train_max = normalization(y_train, True)
 y_test, y_test_min, y_test_max = normalization(y_test, True)
 
 # 构建模型
-model = Sequential([
-    Conv1D(32, kernel_size=16, strides=2, activation='relu', padding='same', input_shape=(800, 1), name='conv1'),
-    Conv1D(64, 8, strides=1, activation='relu', padding='same', name='conv2'),
-    MaxPooling1D(pool_size=2, name='maxpool'),
-    Dropout(0.25, name='dropout1'),
-    Flatten(name='flatten'),
-    Dense(128, activation='relu', name='dense1'),
-    Dropout(0.5, name='dropout2'),
-    Dense(1, activation='linear', name='output')
-])
-model.summary()
+model = model_config.build_model()
 
 # 编译模型
 model.compile(loss='mse',

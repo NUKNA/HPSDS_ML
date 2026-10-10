@@ -11,6 +11,9 @@
 - 修正了“当只有单列数据导入时，数据形状(Shape)不正确”的问题。
 - 新增加函数"load_the_runtime"，用于导入单次runtime数据。
 
+## 2026/9/29 Update.2
+- 将复杂的模型设置移出，另设文件`model_config.py`
+
 ## 2026/9/29 Update
 - 在`load_file.py`中新增函数`load_accord_txt`，简化了读取文件的流程；并且不用每次都修改代码，而是修改外部txt文件。
 
