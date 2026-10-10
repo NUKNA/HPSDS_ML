@@ -1,5 +1,7 @@
 from matplotlib import pyplot as plt
 from tensorflow.keras import models
+import numpy as np
+import matplotlib.pyplot as plt
 
 class IntermediateExtractor:
     def __init__(self, model, layer_names):
@@ -60,8 +62,6 @@ def plot_feature_maps(feature_map, title='', max_channels=16):
     plt.tight_layout()
     plt.show()
 
-import numpy as np
-import matplotlib.pyplot as plt
 
 def to_2d(feature_map):
     """把任意常见形状规整为 (T, C) 的 2D 数组。"""
@@ -88,14 +88,14 @@ def plot_heatmap(feature_map, title='', max_channels=None):
     if max_channels is not None:
         fm = fm[:, :max_channels]
 
-    fm = fm.T                 # (C, T)，imshow 行=通道、列=时间
+    # fm = fm.T                 # (C, T)，imshow 行=通道、列=时间
 
     plt.figure(figsize=(10, max(2, 0.25 * fm.shape[0])))
-    plt.imshow(fm, aspect='auto', cmap='viridis', origin='lower')
+    plt.imshow(fm, aspect='auto', cmap='viridis', origin='upper')
     plt.colorbar(label='activation')
-    plt.xlabel('time step')
-    plt.ylabel('channel')
-    plt.title(f'{title}  (C={fm.shape[0]}, T={fm.shape[1]})')
+    plt.xlabel('Channel')
+    plt.ylabel('Time step')
+    plt.title(f'{title}  (Channel={fm.shape[1]}, Times={fm.shape[0]})')
     plt.tight_layout()
     plt.show()
 
@@ -125,5 +125,67 @@ def plot_activation_overlay(feature_map, title='',
     plt.ylabel('normalized activation')
     plt.title(f'{title}  (T={T}, C={C})')
     plt.grid(alpha=0.3)
+    plt.tight_layout()
+    plt.show()
+
+def plot_summary(history, y_test: np.ndarray, y_predict: np.ndarray, r2: float, mae: float, mse: float):
+
+    # 训练曲线
+    plt.figure(figsize=(8, 6))
+    plt.plot(history.history['loss'], label='Training lost (MSE)')
+    plt.plot(history.history['val_loss'], label='Verification lost (MSE)')
+    plt.title('Loss curve')
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss')
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+    plt.show()
+
+    # 真实值 vs 预测值散点图
+    plt.figure(figsize=(8, 6))
+    plt.scatter(y_test, y_predict, alpha=0.6, edgecolors='k')
+    # 对角线
+    min_val = min(y_test.min(), y_predict.min())
+    max_val = max(y_test.max(), y_predict.max())
+    plt.plot([min_val, max_val], [min_val, max_val], 'r--', lw=2)
+    plt.xlabel('Concentration(Real)/ppm')
+    plt.ylabel('Concentration(Model predict)/ppm')
+    plt.title(f'Result of prediction (R² = {r2:.4f})')
+    plt.grid(True)
+    plt.tight_layout()
+    plt.show()
+
+    # 真实值预测值阶梯图
+    plt.figure(figsize=(8, 6))
+    plt.scatter(np.arange(len(y_predict)), y_predict, alpha=0.6, edgecolors='k')
+    plt.stairs(y_test)
+    plt.yscale('log')
+    plt.xlabel('Data points')
+    plt.ylabel('Concentration(Model predict)/ppm')
+    plt.title(f'Result of prediction (R² = {r2:.4f})')
+    plt.grid(True)
+    plt.tight_layout()
+    plt.show()
+
+    # 额外: 预测残差分布
+    plt.figure(figsize=(8, 6))
+    residuals = y_test - y_predict
+    plt.hist(residuals, bins=30, edgecolor='k', alpha=0.7)
+    plt.xlabel('Prediction residual/ppm')
+    plt.ylabel('Frequency')
+    plt.title(f'Residual distribution (AVG = {np.mean(residuals):.4f}, STD = {np.std(residuals):.4f})')
+    plt.grid(True)
+    plt.tight_layout()
+    plt.show()
+
+    plt.figure(figsize=(8, 6))
+    residuals = (y_test - y_predict) / y_test * 100
+    plt.scatter(y_test, residuals, edgecolor='k', alpha=0.7)
+    plt.xscale('log')
+    plt.xlabel('Real concentration/ppm')
+    plt.ylabel('Residual/%')
+    plt.title(f'Residual distribution (AVG = {np.mean(residuals):.4f}, STD = {np.std(residuals):.4f})')
+    plt.grid(True)
     plt.tight_layout()
     plt.show()

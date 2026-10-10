@@ -9,7 +9,7 @@ import numpy as np
 import loadfile
 import sub_model as sm
 
-def normalization(data:np.ndarray, minmax=False):
+def normalization(data:np.ndarray, minmax:bool=False):
     """
     输入一个数据序列，自动归一化。
 
@@ -88,6 +88,7 @@ y_test = denormalization(y_test, y_test_min, y_test_max)
 y_predict = denormalization(y_predict, y_test_min, y_test_max)
 
 # 获取中间层的输出
+mpl.rcParams['font.family'] = 'Times New Roman'
 layer_names = ['conv1', 'conv2', 'maxpool', 'dropout1', 'flatten', 'dropout2', 'dense1']
 extractor = models.Model(
     inputs=model.inputs,
@@ -95,9 +96,9 @@ extractor = models.Model(
 )
 feats = extractor.predict(x_test, verbose=0)
 for name, f in zip(layer_names, feats):
-    sm.plot_feature_maps(f, title=f'Feature maps of {name} (shape={f.shape})')
+    # sm.plot_feature_maps(f, title=f'Feature maps of {name} (shape={f.shape})')
     sm.plot_heatmap(f, title=f'{name} activations')
-    sm.plot_activation_overlay(f, title=f'{name}(per-channel normalized)')
+    # sm.plot_activation_overlay(f, title=f'{name}(per-channel normalized)')
 
 # 计算指标
 r2 = r2_score(y_test, y_predict)
@@ -107,65 +108,6 @@ print(f"R² (决定系数): {r2:.4f}")
 print(f"MAE (平均绝对误差): {mae:.4f}")
 print(f"RMSE (均方根误差): {rmse:.4f}")
 
-mpl.rcParams['font.family'] = 'Times New Roman'
-# 训练曲线
-plt.figure(figsize=(8, 6))
-plt.plot(history.history['loss'], label='Training lost (MSE)')
-plt.plot(history.history['val_loss'], label='Verification lost (MSE)')
-plt.title('Loss curve')
-plt.xlabel('Epoch')
-plt.ylabel('Loss')
-plt.legend()
-plt.grid(True)
-plt.tight_layout()
-plt.show()
-
-# 真实值 vs 预测值散点图
-plt.figure(figsize=(8, 6))
-plt.scatter(y_test, y_predict, alpha=0.6, edgecolors='k')
-# 对角线
-min_val = min(y_test.min(), y_predict.min())
-max_val = max(y_test.max(), y_predict.max())
-plt.plot([min_val, max_val], [min_val, max_val], 'r--', lw=2)
-plt.xlabel('Concentration(Real)/ppm')
-plt.ylabel('Concentration(Model predict)/ppm')
-plt.title(f'Result of prediction (R² = {r2:.4f})')
-plt.grid(True)
-plt.tight_layout()
-plt.show()
-
-# 真实值预测值阶梯图
-plt.figure(figsize=(8, 6))
-plt.scatter(np.arange(len(y_predict)), y_predict, alpha=0.6, edgecolors='k')
-plt.stairs(y_test)
-plt.yscale('log')
-plt.xlabel('Data points')
-plt.ylabel('Concentration(Model predict)/ppm')
-plt.title(f'Result of prediction (R² = {r2:.4f})')
-plt.grid(True)
-plt.tight_layout()
-plt.show()
-
-# 额外: 预测残差分布
-plt.figure(figsize=(8, 6))
-residuals = y_test - y_predict
-plt.hist(residuals, bins=30, edgecolor='k', alpha=0.7)
-plt.xlabel('Prediction residual/ppm')
-plt.ylabel('Frequency')
-plt.title(f'Residual distribution (AVG = {np.mean(residuals):.4f}, STD = {np.std(residuals):.4f})')
-plt.grid(True)
-plt.tight_layout()
-plt.show()
-
-plt.figure(figsize=(8, 6))
-residuals = (y_test - y_predict) / y_test * 100
-plt.scatter(y_test, residuals, edgecolor='k', alpha=0.7)
-plt.xscale('log')
-plt.xlabel('Real concentration/ppm')
-plt.ylabel('Residual/%')
-plt.title(f'Residual distribution (AVG = {np.mean(residuals):.4f}, STD = {np.std(residuals):.4f})')
-plt.grid(True)
-plt.tight_layout()
-plt.show()
+sm.plot_summary(history, y_test, y_predict, r2, mae, rmse)
 
 print('End of the program.')
