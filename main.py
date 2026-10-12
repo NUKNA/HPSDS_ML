@@ -1,10 +1,9 @@
-from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
-import matplotlib.pyplot as plt
+from tensorflow.keras import models
 import matplotlib as mpl
 import numpy as np
 import sub_model as sm
 import loadfile
-import model_config
+import model_config as mdconfig
 
 def normalization(data:np.ndarray, minmax:bool=False):
     """
@@ -53,7 +52,7 @@ y_train, y_train_min, y_train_max = normalization(y_train, True)
 y_test, y_test_min, y_test_max = normalization(y_test, True)
 
 # 构建模型
-model = model_config.build_model()
+model = mdconfig.build_model()
 
 # 编译模型
 model.compile(loss='mse',
@@ -76,7 +75,7 @@ y_predict = denormalization(y_predict, y_test_min, y_test_max)
 
 # 获取中间层的输出
 mpl.rcParams['font.family'] = 'Times New Roman'
-layer_names = ['conv1', 'conv2', 'maxpool', 'dropout1', 'flatten', 'dropout2', 'dense1']
+layer_names = mdconfig.layer_name()
 extractor = models.Model(
     inputs=model.inputs,
     outputs=[model.get_layer(n).output for n in layer_names]
@@ -87,14 +86,6 @@ for name, f in zip(layer_names, feats):
     sm.plot_heatmap(f, title=f'{name} activations')
     # sm.plot_activation_overlay(f, title=f'{name}(per-channel normalized)')
 
-# 计算指标
-r2 = r2_score(y_test, y_predict)
-mae = mean_absolute_error(y_test, y_predict)
-rmse = np.sqrt(mean_squared_error(y_test, y_predict))
-print(f"R² (决定系数): {r2:.4f}")
-print(f"MAE (平均绝对误差): {mae:.4f}")
-print(f"RMSE (均方根误差): {rmse:.4f}")
-
-sm.plot_summary(history, y_test, y_predict, r2, mae, rmse)
+sm.plot_summary(history, y_test, y_predict)
 
 print('End of the program.')
