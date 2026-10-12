@@ -1,5 +1,6 @@
 from matplotlib import pyplot as plt
 from tensorflow.keras import models
+from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -88,14 +89,14 @@ def plot_heatmap(feature_map, title='', max_channels=None):
     if max_channels is not None:
         fm = fm[:, :max_channels]
 
-    # fm = fm.T                 # (C, T)，imshow 行=通道、列=时间
+    fm = fm.T                 # (C, T)，imshow 行=步数、列=通道
 
     plt.figure(figsize=(10, max(2, 0.25 * fm.shape[0])))
-    plt.imshow(fm, aspect='auto', cmap='viridis', origin='upper')
+    plt.imshow(fm, aspect='auto', origin='upper')
     plt.colorbar(label='activation')
-    plt.xlabel('Channel')
-    plt.ylabel('Time step')
-    plt.title(f'{title}  (Channel={fm.shape[1]}, Times={fm.shape[0]})')
+    plt.xlabel('Time step')
+    plt.ylabel('Channel')
+    plt.title(f'{title}  (Channel={fm.shape[0]}, Step={fm.shape[1]})')
     plt.tight_layout()
     plt.show()
 
@@ -128,7 +129,14 @@ def plot_activation_overlay(feature_map, title='',
     plt.tight_layout()
     plt.show()
 
-def plot_summary(history, y_test: np.ndarray, y_predict: np.ndarray, r2: float, mae: float, mse: float):
+def plot_summary(history, y_test: np.ndarray, y_predict: np.ndarray):
+    # 计算指标
+    r2 = r2_score(y_test, y_predict)
+    mae = mean_absolute_error(y_test, y_predict)
+    rmse = np.sqrt(mean_squared_error(y_test, y_predict))
+    print(f"R² (决定系数): {r2:.4f}")
+    print(f"MAE (平均绝对误差): {mae:.4f}")
+    print(f"RMSE (均方根误差): {rmse:.4f}")
 
     # 训练曲线
     plt.figure(figsize=(8, 6))
