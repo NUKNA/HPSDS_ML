@@ -2,7 +2,7 @@ from tensorflow.keras import models
 import matplotlib as mpl
 import numpy as np
 import sub_model as sm
-import loadfile
+import data_preprocess as dp
 import model_config as mdconfig
 
 def normalization(data:np.ndarray, minmax:bool=False):
@@ -34,8 +34,8 @@ def denormalization(data:np.ndarray, data_min, data_max):
         data[i] = (data_max - data_min) * data[i] + data_min
     return data
 
-x_train, y_train = loadfile.loadfile_accord_txt(r'D:\科研文件\xianhushuju', 'train.txt')
-x_test, y_test = loadfile.loadfile_accord_txt(r'D:\科研文件\xianhushuju', 'test.txt')
+x_train, y_train = dp.loadfile_accord_txt(r'D:\科研文件\xianhushuju', 'train.txt')
+x_test, y_test = dp.loadfile_accord_txt(r'D:\科研文件\xianhushuju', 'test.txt')
 
 
 # 数据预处理
