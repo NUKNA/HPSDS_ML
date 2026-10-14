@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 import os
 
 name_mid = 'ppm_run'
@@ -135,5 +136,56 @@ def loadfile_accord_txt(data_path, txt_file_name):
 
     return data, label
 
+def denormalization(data:np.ndarray, data_min, data_max):
+    """
+    归一化的反向计算，逆归一化。
+
+    :param data: 输入数据序列
+    :param data_min: 归一化前数列的最小值
+    :param data_max: 归一化前数列的最大值
+    :return: 逆归一化后的数列
+    """
+    for i in range(0, len(data)):
+        data[i] = (data_max - data_min) * data[i] + data_min
+    return data
+
+def normalization(data:np.ndarray, minmax:bool=False):
+    """
+    输入一个数据序列，自动归一化。
+
+    :param data: 输入数据序列，任意维度
+    :param minmax: 布尔值，是否返回逆归一化所需的最大最小值
+    :return: 处理后的序列 ``data``, 序列的最小值 ``data_min`` 和最大值 ``data_max``
+    """
+    data_min = np.amin(data)
+    data_max = np.amax(data)
+    for i in range(0, len(data)):
+        data[i] = (data[i] - data_min) / (data_max - data_min)
+    if minmax:
+        return data, data_min, data_max
+    else:
+        return data
+
+def slice(data:np.ndarray, slice_start:int, slice_end:int):
+    """
+    裁切数据的头尾。
+
+    :param data: 输入数据数列
+    :param slice_start: 切片开始点
+    :param slice_end: 切片结束点
+    """
+    # 数据预处理
+    # 转置数据
+    data = data.transpose()
+    # 删除吸收列
+    init_len = data.shape[1]
+    data = np.delete(data, range(0, slice_start), 1)
+    print(range(slice_end-slice_start, init_len-slice_start))
+    data = np.delete(data, range(slice_end-slice_start, init_len-slice_start), 1)
+    plt.plot(np.arange(data.shape[1]), data.transpose())
+    # plt.xticks(range(slice_start, slice_end))
+    plt.show()
+    return data
+
 if __name__=='__main__':
-    loadfile_accord_txt(r'D:\科研文件\xianhushuju','file_list.txt')
+    loadfile_accord_txt(r'D:\科研文件\xianhushuju','test.txt')

@@ -2,57 +2,27 @@ from tensorflow.keras import models
 import matplotlib as mpl
 import numpy as np
 import sub_model as sm
-import loadfile
-import model_config as mconfig
+import model_config as mdconfig
+import data_preprocess as dp
 
-def normalization(data:np.ndarray, minmax:bool=False):
-    """
-    输入一个数据序列，自动归一化。
+# 读取数据
+x_train, y_train = dp.loadfile_accord_txt(r'D:\科研文件\xianhushuju', 'train.txt')
+x_test, y_test = dp.loadfile_accord_txt(r'D:\科研文件\xianhushuju', 'test.txt')
 
-    :param data: 输入数据序列，任意维度
-    :return: 处理后的序列 ``data``, 序列的最小值 ``data_min`` 和最大值 ``data_max``
-    """
-    data_min = np.amin(data)
-    data_max = np.amax(data)
-    for i in range(0, len(data)):
-        data[i] = (data[i] - data_min) / (data_max - data_min)
-    if minmax:
-        return data, data_min, data_max
-    else:
-        return data
+# 裁切数据
+start = 300
+end = 1000
+x_train = dp.slice(x_train, start, end)
+x_test = dp.slice(x_test, start, end)
 
-def denormalization(data:np.ndarray, data_min, data_max):
-    """
-    归一化的反向计算，逆归一化。
-
-    :param data: 输入数据序列
-    :param data_min: 归一化前数列的最小值
-    :param data_max: 归一化前数列的最大值
-    :return: 逆归一化后的数列
-    """
-    for i in range(0, len(data)):
-        data[i] = (data_max - data_min) * data[i] + data_min
-    return data
-
-x_train, y_train = loadfile.loadfile_accord_txt(r'D:\科研文件\xianhushuju', 'train.txt')
-x_test, y_test = loadfile.loadfile_accord_txt(r'D:\科研文件\xianhushuju', 'test.txt')
-
-
-# 数据预处理
-# 转置数据
-x_train = x_train.transpose()
-x_test = x_test.transpose()
-# 删除吸收列
-x_train = np.delete(x_train, range(0,200), axis=1)
-x_test = np.delete(x_test, range(0,200), axis=1)
 # 归一化处理
-x_train = normalization(x_train)
-x_test = normalization(x_test)
-y_train, y_train_min, y_train_max = normalization(y_train, True)
-y_test, y_test_min, y_test_max = normalization(y_test, True)
+x_train = dp.normalization(x_train)
+x_test = dp.normalization(x_test)
+y_train, y_train_min, y_train_max = dp.normalization(y_train, True)
+y_test, y_test_min, y_test_max = dp.normalization(y_test, True)
 
 # 构建模型
-model = mconfig.build_model()
+model = mdconfig.build_model(end-start)
 
 # 编译模型
 model.compile(loss='mse',
@@ -70,12 +40,12 @@ history = model.fit(x_train, y_train,
 y_predict = model.predict(x_test)
 y_predict = y_predict.flatten()
 
-y_test = denormalization(y_test, y_test_min, y_test_max)
-y_predict = denormalization(y_predict, y_test_min, y_test_max)
+y_test = dp.denormalization(y_test, y_test_min, y_test_max)
+y_predict = dp.denormalization(y_predict, y_test_min, y_test_max)
 
 # 获取中间层的输出
 mpl.rcParams['font.family'] = 'Times New Roman'
-layer_names = mconfig.layer_name()
+layer_names = mdconfig.layer_name()
 extractor = models.Model(
     inputs=model.inputs,
     outputs=[model.get_layer(n).output for n in layer_names]
