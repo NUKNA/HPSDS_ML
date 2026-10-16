@@ -10,7 +10,7 @@ x_train, y_train = dp.loadfile_accord_txt(r'D:\科研文件\xianhushuju', 'train
 x_test, y_test = dp.loadfile_accord_txt(r'D:\科研文件\xianhushuju', 'test.txt')
 
 # 裁切数据
-start = 300
+start = 200
 end = 1000
 x_train = dp.slice(x_train, start, end)
 x_test = dp.slice(x_test, start, end)
@@ -31,7 +31,7 @@ model.compile(loss='mse',
 
 # 训练模型
 history = model.fit(x_train, y_train,
-          batch_size=12,
+          batch_size=90,
           epochs=100,
           verbose=1,
           validation_data=(x_test, y_test))
@@ -51,9 +51,9 @@ extractor = models.Model(
     outputs=[model.get_layer(n).output for n in layer_names]
 )
 feats = extractor.predict(x_test, verbose=0)
-for name, f in zip(layer_names, feats):
+# for name, f in zip(layer_names, feats):
     # sm.plot_feature_maps(f, title=f'Feature maps of {name} (shape={f.shape})')
-    sm.plot_heatmap(f, title=f'{name} activations')
+    # sm.plot_heatmap(f, title=f'{name} activations')
     # sm.plot_activation_overlay(f, title=f'{name}(per-channel normalized)')
 
 sm.plot_summary(history, y_test, y_predict)

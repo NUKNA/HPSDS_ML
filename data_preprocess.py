@@ -5,14 +5,15 @@ import os
 name_mid = 'ppm_run'
 name_suf = '.txt'
 
-def loadfile(data_path, name_pre, x_sequence, runtime=3):
+def loadfile(data_path, name_pre, x_sequence, runtime_start:int=1, runtime_end:int=3):
     """
     读取一个浓度梯度下的数据文件。这些文件的路径、前缀（x ppm前面的部分）应该相同。提供浓度梯度和每个浓度运行次数。
 
     :param data_path: 数据文件路径
     :param name_pre: 文件名前缀（x ppm前面的部分）
     :param x_sequence: 浓度梯度列表
-    :param runtime: 每个浓度运行次数（默认为3）
+    :param runtime_start: 每个浓度起始运行序号（默认为1）
+    :param runtime_end: 每个浓度结束运行序号（默认为3）
     :return: data, label 对应数据的x, y
 
     Example
@@ -23,31 +24,31 @@ def loadfile(data_path, name_pre, x_sequence, runtime=3):
     3)
     """
     os.chdir(data_path)
-    data = np.loadtxt(name_pre + str(x_sequence[0]) + name_mid + str(1) + name_suf)
+    data = np.loadtxt(name_pre + str(x_sequence[0]) + name_mid + str(runtime_start) + name_suf)
     label = np.empty([1,1], 'float64')
     label[0][0] = x_sequence[0]
     if data.ndim != 1:
         data = np.delete(data, 1, 1)
-        for i in range(2,runtime+1):
+        for i in range(runtime_start + 1, runtime_end + 1):
             label = np.append(label, [x_sequence[0]])
             temp = np.loadtxt(name_pre + str(x_sequence[0]) + name_mid + str(i) + name_suf)
             temp = np.delete(temp, 1, 1)
             data = np.hstack((data, temp))
         for k in range(1,len(x_sequence)):
-            for i in range(1,runtime+1):
+            for i in range(runtime_start, runtime_end + 1):
                 label = np.append(label, [x_sequence[k]])
                 temp = np.loadtxt(name_pre + str(x_sequence[k]) + name_mid + str(i) + name_suf)
                 temp = np.delete(temp, 1, 1)
                 data = np.hstack((data, temp))
     else:
         data = data.reshape(-1,1)
-        for i in range(2,runtime):
+        for i in range(runtime_start + 1, runtime_end + 1):
             label = np.append(label, [x_sequence[0]])
             temp = np.loadtxt(name_pre + str(x_sequence[0]) + name_mid + str(i) + name_suf)
             temp = temp.reshape(-1,1)
             data = np.hstack((data, temp))
         for k in range(1,len(x_sequence)):
-            for i in range(1,runtime):
+            for i in range(runtime_start, runtime_end + 1):
                 label = np.append(label, [x_sequence[k]])
                 temp = np.loadtxt(name_pre + str(x_sequence[k]) + name_mid + str(i) + name_suf)
                 temp = temp.reshape(-1, 1)
@@ -114,7 +115,9 @@ def loadfile_accord_txt(data_path, txt_file_name):
         except ValueError:
             x_sequence.append(float(j))
         if file_list.shape[1] == 4:
-            data, label = loadfile(file_list[0][0], file_list[0][1], x_sequence, int(file_list[0][3]))
+            data, label = loadfile(file_list[0][0], file_list[0][1], x_sequence, 1, int(file_list[0][3]))
+        elif file_list.shape[1] == 5:
+            data, label = loadfile(file_list[0][0], file_list[0][1], x_sequence, int(file_list[0][3]), int(file_list[0][4]))
         else:
             data, label = loadfile(file_list[0][0], file_list[0][1], x_sequence)
     #之后行的数据
@@ -126,7 +129,11 @@ def loadfile_accord_txt(data_path, txt_file_name):
             except ValueError:
                 x_sequence.append(float(j))
         if file_list.shape[1] == 4:
-            x_temp, y_temp = loadfile(file_list[i][0], file_list[i][1], x_sequence, int(file_list[i][3]))
+            x_temp, y_temp = loadfile(file_list[i][0], file_list[i][1], x_sequence, 1, int(file_list[i][3]))
+            data = np.hstack((data, x_temp))
+            label = np.hstack((label, y_temp))
+        elif file_list.shape[1] == 5:
+            x_temp, y_temp = loadfile(file_list[i][0], file_list[i][1], x_sequence, int(file_list[i][3]), int(file_list[i][4]))
             data = np.hstack((data, x_temp))
             label = np.hstack((label, y_temp))
         else:
@@ -135,6 +142,23 @@ def loadfile_accord_txt(data_path, txt_file_name):
             label = np.hstack((label, y_temp))
 
     return data, label
+
+def normalization(data:np.ndarray, minmax:bool=False):
+    """
+    输入一个数据序列，自动归一化。
+
+    :param data: 输入数据序列，任意维度
+    :param minmax: 布偶值，是否需要返回逆归一化所需的最大最小值
+    :return: 处理后的序列 ``data``, 序列的最小值 ``data_min`` 和最大值 ``data_max``
+    """
+    data_min = np.amin(data)
+    data_max = np.amax(data)
+    for i in range(0, len(data)):
+        data[i] = (data[i] - data_min) / (data_max - data_min)
+    if minmax:
+        return data, data_min, data_max
+    else:
+        return data
 
 def denormalization(data:np.ndarray, data_min, data_max):
     """
@@ -148,23 +172,6 @@ def denormalization(data:np.ndarray, data_min, data_max):
     for i in range(0, len(data)):
         data[i] = (data_max - data_min) * data[i] + data_min
     return data
-
-def normalization(data:np.ndarray, minmax:bool=False):
-    """
-    输入一个数据序列，自动归一化。
-
-    :param data: 输入数据序列，任意维度
-    :param minmax: 布尔值，是否返回逆归一化所需的最大最小值
-    :return: 处理后的序列 ``data``, 序列的最小值 ``data_min`` 和最大值 ``data_max``
-    """
-    data_min = np.amin(data)
-    data_max = np.amax(data)
-    for i in range(0, len(data)):
-        data[i] = (data[i] - data_min) / (data_max - data_min)
-    if minmax:
-        return data, data_min, data_max
-    else:
-        return data
 
 def slice(data:np.ndarray, slice_start:int, slice_end:int):
     """
@@ -180,12 +187,16 @@ def slice(data:np.ndarray, slice_start:int, slice_end:int):
     # 删除吸收列
     init_len = data.shape[1]
     data = np.delete(data, range(0, slice_start), 1)
-    print(range(slice_end-slice_start, init_len-slice_start))
     data = np.delete(data, range(slice_end-slice_start, init_len-slice_start), 1)
     plt.plot(np.arange(data.shape[1]), data.transpose())
-    # plt.xticks(range(slice_start, slice_end))
+    # plt.xlim(slice_start, slice_end)
+    plt.xlabel('Data point')
+    plt.ylabel('Signal')
     plt.show()
     return data
 
 if __name__=='__main__':
-    loadfile_accord_txt(r'D:\科研文件\xianhushuju','test.txt')
+    x_train, y_train = loadfile_accord_txt(r'D:\科研文件\xianhushuju', 'train.txt')
+    x_test, y_test = loadfile_accord_txt(r'D:\科研文件\xianhushuju', 'test.txt')
+    print(f'训练数据: x-{x_train.shape}, y-{y_train.shape}')
+    print(f'测试数据: x-{x_test.shape}, y-{y_test.shape}')
