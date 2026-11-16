@@ -196,4 +196,8 @@ def slice(data:np.ndarray, slice_start:int, slice_end:int):
     return data
 
 if __name__=='__main__':
-    loadfile_accord_txt(r'D:\科研文件\xianhushuju','file_list.txt')
+    x_train, y_train = loadfile_accord_txt(r'D:\科研文件\xianhushuju', 'train.txt')
+    x_test, y_test = loadfile_accord_txt(r'D:\科研文件\xianhushuju', 'test.txt')
+    print(f'训练数据: x-{x_train.shape}, y-{y_train.shape}')
+    print(f'测试数据: x-{x_test.shape}, y-{y_test.shape}')
+    print(f'总数据量：{y_train.shape[0]+y_test.shape[0]}')
